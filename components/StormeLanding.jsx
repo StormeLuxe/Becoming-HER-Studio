@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 
@@ -6,21 +6,21 @@ const MODULES = [
   { icon: "◈", name: "Storme Archive", tag: "Alter Ego Builder", desc: "Upload your photos and let STORME write your elevated identity into existence — her visual essence, signature aesthetic, and a cinematic AI generation prompt built around YOUR face, YOUR energy.", color: "#f72585" },
   { icon: "⬡", name: "Muse Reel", tag: "Visual Concept Studio", desc: "Turn a feeling into a magazine-grade image or video prompt. Director's lighting notes, shot variations, color grade direction — every frame intentional, every visual earned.", color: "#c77dff" },
   { icon: "◉", name: "Viral Story Brain", tag: "Hook Pressure™ Engine", desc: "Every script, caption, and reel is scored live across 7 Hook Pressure™ metrics: Curiosity Gap, Mid-Scene Drop, Contradiction, Confession, Stakes, Power Reversal, Named Threat. Know it hits before you post.", color: "#f72585" },
-  { icon: "◐", name: "Emotional Engine", tag: "Story Architecture", desc: "Built on the literary energy of Eric Jerome Dickey, Zane, Sister Souljah, and Tayari Jones. Black love, Black drama, Black interiority — grown, complicated, sensual, consequential. Your story has weight here.", color: "#7b2fff" },
+  { icon: "●", name: "Emotional Engine", tag: "Story Architecture", desc: "Built on the literary energy of Eric Jerome Dickey, Zane, Sister Souljah, and Tayari Jones. Black love, Black drama, Black interiority — grown, complicated, sensual, consequential. Your story has weight here.", color: "#7b2fff" },
   { icon: "◫", name: "DMS Studio", tag: "Digital Muse Society", desc: "Architect a full digital persona: bio, content pillars, DM openers, signature phrases, and monetization personality. Build the version of you that sells without selling.", color: "#4cc9f0" },
 ];
 
 const PRICING = [
-  { tier: "Her Spark", price: "$27", period: "/month", tagline: "Strike the match.", features: ["Viral Story Brain — unlimited hooks", "Emotional Story Engine", "Hook Pressure™ scoring", "All 4 content formats", "Email support"], cta: "Start Her Spark", plan: "spark", highlight: false },
-  { tier: "Her Rise", price: "$47", period: "/month", tagline: "She's moving now.", features: ["Everything in Her Spark", "Storme Archive — photo upload", "Muse Reel visual concepts", "Cinematic generation prompts", "Priority support"], cta: "Start Her Rise", plan: "rise", highlight: true, badge: "Most Popular" },
-  { tier: "Becoming Her", price: "$97", period: "/month", tagline: "Full transformation. All of her.", features: ["Everything in Her Rise", "DMS Studio — persona architect", "Unlimited photo uploads", "White-glove onboarding call", "Early access to new modules"], cta: "Start Becoming Her", plan: "becoming", highlight: false, badge: "Full Suite" },
+  { tier: "Creator", price: "$27", period: "/month", tagline: "Start creating.", features: ["100 credits/month", "Content Studio", "Script Studio", "Viral Story Brain", "Community access"], cta: "Choose Creator", plan: "creator", highlight: false },
+  { tier: "Pro Creator", price: "$47", period: "/month", tagline: "Scale the content engine.", features: ["300 credits/month", "Everything in Creator", "Character Builder", "Muse Reel", "Brand Vault", "Premium templates"], cta: "Choose Pro Creator", plan: "pro", highlight: true, badge: "Most Popular" },
+  { tier: "Studio", price: "$97", period: "/month", tagline: "Full suite. All 8 modules.", features: ["1000 credits/month", "Everything in Pro Creator", "Storyboard Studio", "DMS Studio", "Priority features", "Early access to new modules"], cta: "Choose Studio", plan: "studio", highlight: false, badge: "Full Suite" },
 ];
 
 const FAQS = [
   { q: "Who is STORME Cinéma built for?", a: "AI creators, digital entrepreneurs, content strategists, and women building luxury brands online. If you create content and want it to feel like it came from a director's table — not a SaaS dashboard — this is yours." },
   { q: "Do I need tech experience to use it?", a: "None. STORME Cinéma is built for creators, not developers. You show up with your vision — STORME does the heavy lifting." },
   { q: "What is Hook Pressure™?", a: "Hook Pressure™ is STORME's proprietary scoring system. Every piece of content you generate is analyzed across 7 attention-trap metrics so you know exactly how hard your hook will hit before you post." },
-  { q: "Can I upload my own photos?", a: "Yes — on Her Rise and Becoming Her plans. Upload up to 6 photos and STORME reads your face, your energy, your presence, and writes your alter ego around the real you." },
+  { q: "Can I upload my own photos?", a: "Yes — on Pro Creator and Becoming Her plans. Upload up to 6 photos and STORME reads your face, your energy, your presence, and writes your alter ego around the real you." },
   { q: "What makes this different from ChatGPT?", a: "STORME Cinéma is not a general AI tool. It's a cinematic storytelling engine with intentional modules, built around Black feminine creativity, luxury brand positioning, and content that moves people. The culture is built in." },
   { q: "Can I cancel anytime?", a: "Yes. No contracts, no penalties. Cancel from your account any time — you keep access through the end of your billing period." },
 ];
@@ -182,7 +182,7 @@ export default function StormeLanding({ onEnter }) {
       <div className="page">
         <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
           <div className="nav-brand">STORME <em>Cinéma</em></div>
-          <button className="nav-cta" onClick={onEnter}>Start Your Glow-Up →</button>
+          <button className="nav-cta" onClick={() => onEnter("creator")}>Start Your Glow-Up →</button>
         </nav>
 
         <div className="hero">
@@ -193,7 +193,7 @@ export default function StormeLanding({ onEnter }) {
           <div className="hero-divider" />
           <p className="hero-desc">The cinematic AI storytelling studio built for creators who refuse to sound like everyone else. Your story is the strategy. Your presence is the brand. Your becoming is the content.</p>
           <div className="hero-ctas">
-            <button className="btn-primary" onClick={onEnter}>Start Your Glow-Up</button>
+            <button className="btn-primary" onClick={() => onEnter("creator")}>Start Your Glow-Up</button>
             <button className="btn-ghost" onClick={() => document.getElementById("pricing").scrollIntoView({ behavior: "smooth" })}>See Pricing</button>
           </div>
           <div className="hero-scroll"><div className="hero-scroll-line" />scroll</div>
@@ -269,7 +269,7 @@ export default function StormeLanding({ onEnter }) {
                   <div className="price-amount"><span className="price-num">{p.price}</span><span className="price-period">{p.period}</span></div>
                   <div className="price-divider" />
                   <ul className="price-features">{p.features.map(f => <li key={f}>{f}</li>)}</ul>
-                  <button className={`price-cta ${p.highlight ? "price-cta-primary" : "price-cta-ghost"}`} onClick={onEnter}>{p.cta} →</button>
+                  <button className={`price-cta ${p.highlight ? "price-cta-primary" : "price-cta-ghost"}`} onClick={() => onEnter(p.plan)}>{p.cta} →</button>
                 </div>
               ))}
             </div>
@@ -289,7 +289,7 @@ export default function StormeLanding({ onEnter }) {
           <div className="final-cta">
             <h2 className="final-title">The story<br />doesn't start later.<br /><em>It starts now.</em></h2>
             <p className="final-sub">Every version of her you've imagined is one story away. STORME Cinéma is the room where she becomes real.</p>
-            <button className="btn-primary" onClick={onEnter}>Start Your Glow-Up →</button>
+            <button className="btn-primary" onClick={() => onEnter("creator")}>Start Your Glow-Up →</button>
           </div>
         </Section>
 
@@ -305,3 +305,6 @@ export default function StormeLanding({ onEnter }) {
     </>
   );
 }
+
+
+

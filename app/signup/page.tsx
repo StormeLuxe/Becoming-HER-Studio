@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -7,6 +7,7 @@ import Link from "next/link";
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -33,7 +34,7 @@ export default function SignupPage() {
 
       <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 420, textAlign: "center" }}>
         <div style={{ marginBottom: "2.5rem" }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", letterSpacing: "0.4em", color: "#4cc9f0", textTransform: "uppercase", marginBottom: "0.75rem" }}>Storme Luxe · The AI Glow-Up</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", letterSpacing: "0.4em", color: "#4cc9f0", textTransform: "uppercase", marginBottom: "0.75rem" }}>Storme Luxe Â· The AI Glow-Up</div>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(0.85rem, 3vw, 1.1rem)", fontStyle: "italic", letterSpacing: "0.25em", textTransform: "uppercase", background: "linear-gradient(90deg, #f72585, #c77dff, #4cc9f0)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", marginBottom: "0.4rem" }}>Becoming Her</div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2.5rem, 8vw, 3.5rem)", fontWeight: 400, color: "#f0e6ff", lineHeight: 0.9, margin: 0 }}>Becoming <em style={{ color: "#c77dff" }}>HER</em></h1>
           <div style={{ width: 50, height: 1, background: "linear-gradient(90deg, transparent, #f72585, #7b2fff, transparent)", margin: "1.25rem auto" }} />
@@ -59,11 +60,20 @@ export default function SignupPage() {
               </div>
               <div style={{ marginBottom: "0.75rem" }}>
                 <label style={{ display: "block", fontSize: "0.55rem", letterSpacing: "0.3em", textTransform: "uppercase", color: "#7b2fff", marginBottom: "0.5rem" }}>Password</label>
-                <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="min 8 characters" autoComplete="new-password" minLength={8} required style={{ width: "100%", padding: "0.85rem 1rem", background: "#1c1230", border: `1px solid ${error ? "#f72585" : "#3a2560"}`, borderRadius: 2, color: "#f0e6ff", fontFamily: "'Cormorant Garamond', serif", fontSize: "1rem", outline: "none", boxSizing: "border-box" }} />
+                <div style={{ position: "relative" }}>
+                <input type={showPassword ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="min 8 characters" autoComplete="new-password" minLength={8} required style={{ width: "100%", padding: "0.85rem 3rem 0.85rem 1rem", background: "#1c1230", border: `1px solid ${error ? "#f72585" : "#3a2560"}`, borderRadius: 2, color: "#f0e6ff", fontFamily: "'Cormorant Garamond', serif", fontSize: "1rem", outline: "none", boxSizing: "border-box" }} />
+                <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} onClick={() => setShowPassword(v => !v)} style={{ position: "absolute", top: "50%", right: "0.85rem", transform: "translateY(-50%)", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(123,47,255,0.12)", border: "1px solid rgba(199,125,255,0.28)", borderRadius: 2, color: showPassword ? "#f0e6ff" : "#8b6faa", cursor: "pointer", padding: 0 }}>
+                  {showPassword ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3l18 18" /><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path d="M9.5 4.5A9.7 9.7 0 0 1 12 4c5 0 8.5 5 9 8a10.8 10.8 0 0 1-2.1 4.1" /><path d="M6.1 6.1C4.4 7.5 3.3 9.5 3 12c.5 3 4 8 9 8a9.7 9.7 0 0 0 4.2-.9" /></svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
+                  )}
+                </button>
+              </div>
               </div>
               {error && <p style={{ fontSize: "0.65rem", color: "#f72585", marginBottom: "0.75rem", fontFamily: "'DM Mono', monospace" }}>{error}</p>}
               <button type="submit" disabled={loading || !email || password.length < 8} style={{ width: "100%", padding: "1rem 2rem", background: loading || !email || password.length < 8 ? "rgba(123,47,255,0.2)" : "linear-gradient(135deg, #b5179e 0%, #f72585 50%, #7b2fff 100%)", border: "none", borderRadius: 1, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", letterSpacing: "0.25em", textTransform: "uppercase", cursor: loading || !email || password.length < 8 ? "not-allowed" : "pointer", marginTop: "0.5rem", opacity: loading || !email || password.length < 8 ? 0.5 : 1 }}>
-                {loading ? "Creating…" : "Create My Account"}
+                {loading ? "Creatingâ€¦" : "Create My Account"}
               </button>
             </form>
             <p style={{ marginTop: "2rem", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: "0.9rem", color: "#8b6faa" }}>
@@ -75,3 +85,4 @@ export default function SignupPage() {
     </main>
   );
 }
+
