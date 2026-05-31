@@ -16,6 +16,7 @@ const MODULE_MIN_PLAN = {
   script:     "creator",
   projects:   "creator",
   memory:     "creator",
+  prompts:    "creator",
   character:  "pro",
   vault:      "pro",
   storyboard: "studio",
@@ -39,6 +40,9 @@ const CONTENT_ACTION_MAP = {
   "Carousel Outline":     "content-plan",
   "Thread/Carousel Copy": "content-plan",
   "Content Calendar":     "content-calendar",
+  "7-Day Calendar":       "content-calendar",
+  "30-Day Calendar":      "content-calendar",
+  "90-Day Calendar":      "content-calendar",
   "Story Sequence":       "script-generation",
 };
 
@@ -91,20 +95,19 @@ async function callClaudeJSON(system, userMsg, action = "script-generation") {
 // ─── Supabase save helpers ────────────────────────────────────────────────────
 
 async function saveGeneration(userId, name, type, content) {
-  if (!userId) return;
-  try {
-    const sb = createClient();
-    await sb.from("projects").insert({ user_id: userId, name, type, content: { text: content } });
-  } catch {}
+  // /api/generate is the canonical save path for successful AI generations.
+  // This compatibility shim prevents older module code from double-saving projects.
+  return { userId, name, type, content };
 }
 
 // ─── Profile context ──────────────────────────────────────────────────────────
 
 const ProfileContext = createContext(null);
 const DEFAULT_PROFILE = {
-  identity: { name: "", pronouns: "", tagline: "", origin: "", transformation: "" },
-  brand:    { brandName: "", niche: "", mission: "", tone: "", archetype: "" },
+  identity: { name: "", pronouns: "", becoming: "", creatorType: "", tagline: "", origin: "", transformation: "" },
+  brand:    { brandName: "", tagline: "", niche: "", mission: "", tone: "", archetype: "" },
   audience: { who: "", age: "", pain: "", desire: "", platform: "" },
+  content:  { platforms: "", goals: "", style: "" },
   visual:   { colors: "", aesthetic: "", mood: "", references: "" },
   voice:    { style: "", vocabulary: "", avoid: "", signature: "" },
   goals:    { shortTerm: "", longTerm: "", revenue: "", impact: "" },
@@ -117,6 +120,7 @@ function profileContext(profile) {
 Name: ${p.identity.name||"not set"} | Tagline: ${p.identity.tagline||"not set"} | Transformation: ${p.identity.transformation||"not set"}
 Brand: ${p.brand.brandName||"not set"} | Niche: ${p.brand.niche||"not set"} | Tone: ${p.brand.tone||"not set"} | Archetype: ${p.brand.archetype||"not set"}
 Audience: ${p.audience.who||"not set"} | Pain: ${p.audience.pain||"not set"} | Desire: ${p.audience.desire||"not set"} | Platform: ${p.audience.platform||"not set"}
+Content: ${p.content?.platforms||"not set"} | Goals: ${p.content?.goals||"not set"} | Style: ${p.content?.style||"not set"}
 Visual: ${p.visual.aesthetic||"not set"} | Mood: ${p.visual.mood||"not set"} | Colors: ${p.visual.colors||"not set"}
 Voice: ${p.voice.style||"not set"} | Signature: ${p.voice.signature||"not set"}
 Goals: ${p.goals.shortTerm||"not set"} → ${p.goals.longTerm||"not set"}`.trim();
@@ -217,13 +221,14 @@ function OutOfCreditsPrompt({ userPlan, onUpgrade }) {
 
 const NAV = [
   { id: "profile",    icon: "◈", label: "Becoming Profile",  color: "#f72585" },
-  { id: "character",  icon: "◉", label: "Character Builder", color: "#c77dff" },
   { id: "vault",      icon: "⬡", label: "Brand Vault",       color: "#e8c97e" },
+  { id: "character",  icon: "◉", label: "Character Builder", color: "#c77dff" },
+  { id: "memory",     icon: "◬", label: "AI Memory Engine",  color: "#4cc9f0" },
+  { id: "projects",   icon: "▣", label: "Project Vault",     color: "#c77dff" },
+  { id: "prompts",    icon: "◎", label: "Prompt Vault",      color: "#7b2fff" },
   { id: "content",    icon: "◐", label: "Content Studio",    color: "#4cc9f0" },
   { id: "storyboard", icon: "◫", label: "Storyboard Studio", color: "#7b2fff" },
   { id: "script",     icon: "◑", label: "Script Studio",     color: "#f72585" },
-  { id: "projects",   icon: "▣", label: "Project Vault",     color: "#c77dff" },
-  { id: "memory",     icon: "◬", label: "AI Memory Engine",  color: "#4cc9f0" },
   // V2: { id: "settings", icon: "◎", label: "Settings", color: "#7a6096" },
 ];
 
@@ -240,6 +245,7 @@ function BecomingProfile({ userId }) {
     { id: "identity", label: "Identity",     icon: "◈" },
     { id: "brand",    label: "Brand",        icon: "⬡" },
     { id: "audience", label: "Audience",     icon: "◉" },
+    { id: "content",  label: "Content",      icon: "◐" },
     { id: "visual",   label: "Visual Style", icon: "◐" },
     { id: "voice",    label: "Voice",        icon: "◫" },
     { id: "goals",    label: "Goals",        icon: "◑" },
@@ -251,7 +257,7 @@ function BecomingProfile({ userId }) {
     setSaving(true);
     if (userId) {
       const sb = createClient();
-      await sb.from("profiles").upsert({ user_id: userId, ...profile }, { onConflict: "user_id" });
+      await sb.from("profiles").upsert({ user_id: userId, ...profile, onboarding_complete: true }, { onConflict: "user_id" });
     }
     setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2000);
   }
@@ -260,12 +266,15 @@ function BecomingProfile({ userId }) {
     identity: [
       { key: "name",           label: "Your Name / Creator Name",      ph: "e.g. Lytoria, Storme..."              },
       { key: "pronouns",       label: "Pronouns",                      ph: "e.g. she/her"                         },
+      { key: "becoming",       label: "Who Are You Becoming?",          ph: "The woman, creator, and leader you are stepping into..." },
+      { key: "creatorType",    label: "Creator Type",                  ph: "Creator, Influencer, Author, Coach, Business Owner, AI Creator..." },
       { key: "tagline",        label: "Your Signature Tagline",        ph: "e.g. She didn't arrive… she became."  },
       { key: "origin",         label: "Your Origin Story (short)",     ph: "Where did you start? What changed?"   },
       { key: "transformation", label: "The Transformation You Embody", ph: "What did you overcome or become?"     },
     ],
     brand: [
       { key: "brandName",  label: "Brand Name",        ph: "e.g. Storme Luxe, Dollars & Dreams..."           },
+      { key: "tagline",    label: "Brand Tagline",     ph: "The promise people remember..."                  },
       { key: "niche",      label: "Niche / Industry",  ph: "e.g. AI creator education, luxury content..."    },
       { key: "mission",    label: "Brand Mission",     ph: "What does your brand exist to do?"               },
       { key: "tone",       label: "Brand Tone",        ph: "e.g. Cinematic, luxury, empowering..."           },
@@ -277,6 +286,11 @@ function BecomingProfile({ userId }) {
       { key: "pain",     label: "Her Biggest Pain Point",   ph: "What keeps her up at night?"             },
       { key: "desire",   label: "Her Deepest Desire",       ph: "What does she truly want?"               },
       { key: "platform", label: "Primary Platform",         ph: "e.g. Instagram, TikTok, Fanvue..."       },
+    ],
+    content: [
+      { key: "platforms", label: "Platforms",     ph: "Instagram, TikTok, Pinterest, YouTube, Facebook..." },
+      { key: "goals",     label: "Content Goals", ph: "Grow audience, sell offers, build authority..." },
+      { key: "style",     label: "Content Style", ph: "Educational, cinematic, storytelling, soft luxury..." },
     ],
     visual: [
       { key: "colors",     label: "Brand Colors",      ph: "e.g. Black, crimson, gold, blush pink..."    },
@@ -298,7 +312,7 @@ function BecomingProfile({ userId }) {
     ],
   };
 
-  const TEXTAREA_KEYS = ["origin","transformation","mission","who","pain","desire"];
+  const TEXTAREA_KEYS = ["becoming","origin","transformation","mission","who","pain","desire","goals"];
   const current = FIELDS[tab];
 
   return (
@@ -331,14 +345,22 @@ function BecomingProfile({ userId }) {
 
 function CharacterBuilder({ userId, refreshCredits, onUpgrade, userPlan }) {
   const { profile } = useProfile();
-  const [char, setChar]     = useState({ name:"", appearance:"", personality:"", voice:"", backstory:"" });
+  const [char, setChar]     = useState({ name:"", age:"", appearance:"", skinTone:"", hair:"", bodyType:"", fashionStyle:"", personality:"", voice:"", backstory:"" });
   const [photos, setPhotos] = useState([]);
+  const [savedCharacters, setSavedCharacters] = useState([]);
   const [result, setResult] = useState("");
   const [loading, setLoading]      = useState(false);
   const [creditError, setCreditError] = useState(false);
   const fileRef = useRef(null);
 
   function update(k, v) { setChar(p => ({ ...p, [k]: v })); }
+
+  useEffect(() => {
+    if (!userId) return;
+    const sb = createClient();
+    sb.from("characters").select("id,name,appearance,voice,updated_at").eq("user_id", userId).order("updated_at", { ascending:false })
+      .then(({ data }) => { if (data) setSavedCharacters(data); });
+  }, [userId]);
 
   async function toB64(file) {
     return new Promise(res => {
@@ -348,8 +370,40 @@ function CharacterBuilder({ userId, refreshCredits, onUpgrade, userPlan }) {
     });
   }
   async function handleFiles(files) {
-    const encoded = await Promise.all(Array.from(files).filter(f => f.type.startsWith("image/")).slice(0,4).map(toB64));
+    const valid = Array.from(files).filter(f => f.type.startsWith("image/")).slice(0,4);
+    const encoded = await Promise.all(valid.map(async (file) => {
+      const local = await toB64(file);
+      if (!userId) return local;
+      const sb = createClient();
+      const path = `${userId}/${Date.now()}-${file.name}`;
+      const { error } = await sb.storage.from("character-images").upload(path, file, { upsert:true });
+      if (error) return local;
+      const { data } = sb.storage.from("character-images").getPublicUrl(path);
+      return { ...local, publicUrl: data.publicUrl };
+    }));
     setPhotos(p => [...p, ...encoded].slice(0,4));
+  }
+
+  async function saveCharacter(aiText = result) {
+    if (!userId || !char.name) return;
+    const sb = createClient();
+    const payload = {
+      user_id: userId,
+      name: char.name,
+      age: char.age,
+      appearance: char.appearance,
+      skin_tone: char.skinTone,
+      hair: char.hair,
+      body_type: char.bodyType,
+      fashion_style: char.fashionStyle,
+      personality: char.personality,
+      voice: char.voice,
+      story: char.backstory,
+      image_urls: photos.map(p => p.publicUrl).filter(Boolean),
+      ai_profile: aiText ? { text: aiText } : {},
+    };
+    const { data } = await sb.from("characters").insert(payload).select("id,name,appearance,voice,updated_at").single();
+    if (data) setSavedCharacters(prev => [data, ...prev]);
   }
 
   async function generate() {
@@ -366,7 +420,7 @@ function CharacterBuilder({ userId, refreshCredits, onUpgrade, userPlan }) {
     if (insufficientCredits) { setCreditError(true); return; }
     setResult(text);
     refreshCredits();
-    if (text) saveGeneration(userId, char.name||"Character", "character", text);
+    if (text) await saveCharacter(text);
   }
 
   return (
@@ -375,10 +429,15 @@ function CharacterBuilder({ userId, refreshCredits, onUpgrade, userPlan }) {
       <div className="two-col">
         <div>
           <FieldGroup label="Character Name"><Input value={char.name} onChange={v => update("name",v)} placeholder="e.g. Storme, Velvet, Nova…" /></FieldGroup>
+          <FieldGroup label="Age"><Input value={char.age} onChange={v => update("age",v)} placeholder="e.g. 32, timeless, late 20s..." /></FieldGroup>
           <FieldGroup label="Appearance"><Textarea value={char.appearance} onChange={v => update("appearance",v)} placeholder="Skin, hair, eyes, body, style…" /></FieldGroup>
+          <FieldGroup label="Skin Tone"><Input value={char.skinTone} onChange={v => update("skinTone",v)} placeholder="e.g. deep mahogany, golden brown..." /></FieldGroup>
+          <FieldGroup label="Hair"><Input value={char.hair} onChange={v => update("hair",v)} placeholder="Texture, length, color, signature styling..." /></FieldGroup>
           <FieldGroup label="Personality"><Textarea value={char.personality} onChange={v => update("personality",v)} placeholder="Energy, traits, how she moves…" /></FieldGroup>
         </div>
         <div>
+          <FieldGroup label="Body Type"><Input value={char.bodyType} onChange={v => update("bodyType",v)} placeholder="Silhouette, posture, movement..." /></FieldGroup>
+          <FieldGroup label="Fashion Style"><Input value={char.fashionStyle} onChange={v => update("fashionStyle",v)} placeholder="Editorial, soft luxury, street luxe..." /></FieldGroup>
           <FieldGroup label="Voice & Tone"><Input value={char.voice} onChange={v => update("voice",v)} placeholder="How does she speak?" /></FieldGroup>
           <FieldGroup label="Backstory"><Textarea value={char.backstory} onChange={v => update("backstory",v)} placeholder="Where did she come from?" /></FieldGroup>
           <FieldGroup label="Reference Photos (optional)">
@@ -390,8 +449,10 @@ function CharacterBuilder({ userId, refreshCredits, onUpgrade, userPlan }) {
           </FieldGroup>
         </div>
       </div>
+      <CTAButton onClick={() => saveCharacter()} color="purple">◉  Save Character</CTAButton>
       <CTAButton onClick={generate} loading={loading} loadingText="Building her… (15 credits)" color="purple">◉  Build Character <span className="credit-cost">15 credits</span></CTAButton>
       {creditError && <OutOfCreditsPrompt userPlan={userPlan} onUpgrade={onUpgrade} />}
+      {savedCharacters.length > 0 && <div className="projects-grid">{savedCharacters.slice(0, 3).map(c => <div key={c.id} className="project-card" style={{ "--pc":"#c77dff" }}><div className="project-accent" style={{ background:"#c77dff" }} /><div className="project-type">Saved Character</div><div className="project-name">{c.name}</div><div className="project-meta"><span>{c.voice || "Voice pending"}</span></div></div>)}</div>}
       {result && <ResultCard accentColor="#c77dff"><div className="prose">{result}</div></ResultCard>}
     </div>
   );
@@ -401,10 +462,56 @@ function CharacterBuilder({ userId, refreshCredits, onUpgrade, userPlan }) {
 
 function BrandVault({ userId, refreshCredits, onUpgrade, userPlan }) {
   const { profile } = useProfile();
-  const [vault, setVault]   = useState({ colors:"", fonts:"", messaging:"" });
+  const [vault, setVault]   = useState({ colors:"", fonts:"", messaging:"", website:"", handles:"", offers:"" });
+  const [logoUrls, setLogoUrls] = useState([]);
   const [result, setResult] = useState(null);
   const [loading, setLoading]       = useState(false);
   const [creditError, setCreditError] = useState(false);
+  const logoRef = useRef(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    const sb = createClient();
+    sb.from("brand_vaults").select("*").eq("user_id", userId).maybeSingle().then(({ data }) => {
+      if (!data) return;
+      setVault({
+        colors: Array.isArray(data.colors) ? data.colors.map(c => c.hex || c.name || c).join(", ") : "",
+        fonts: Array.isArray(data.fonts) ? data.fonts.map(f => f.name || f).join(", ") : "",
+        messaging: data.notes || "",
+        website: data.website || "",
+        handles: data.social_handles ? JSON.stringify(data.social_handles) : "",
+        offers: Array.isArray(data.offers) ? data.offers.join(", ") : "",
+      });
+      setLogoUrls(Array.isArray(data.logo_urls) ? data.logo_urls : []);
+    });
+  }, [userId]);
+
+  async function uploadLogo(file) {
+    if (!file || !userId) return;
+    const sb = createClient();
+    const path = `${userId}/${Date.now()}-${file.name}`;
+    const { error } = await sb.storage.from("brand-assets").upload(path, file, { upsert: true });
+    if (error) return;
+    const { data } = sb.storage.from("brand-assets").getPublicUrl(path);
+    setLogoUrls(prev => [...prev, data.publicUrl]);
+  }
+
+  async function saveVault(data = result) {
+    if (!userId) return;
+    const sb = createClient();
+    await sb.from("brand_vaults").upsert({
+      user_id: userId,
+      colors: data?.palette || vault.colors.split(",").map(v => v.trim()).filter(Boolean),
+      fonts: data?.fonts || vault.fonts.split(",").map(v => v.trim()).filter(Boolean),
+      logo_urls: logoUrls,
+      personality: { voiceGuide: data?.voiceGuide || vault.messaging, tone: profile.brand.tone, archetype: profile.brand.archetype },
+      audience: profile.audience,
+      offers: vault.offers.split(",").map(v => v.trim()).filter(Boolean),
+      website: vault.website || null,
+      social_handles: { raw: vault.handles },
+      notes: vault.messaging,
+    }, { onConflict: "user_id" });
+  }
 
   async function generate() {
     setLoading(true); setResult(null); setCreditError(false);
@@ -417,7 +524,7 @@ function BrandVault({ userId, refreshCredits, onUpgrade, userPlan }) {
     if (data?._insufficientCredits) { setCreditError(true); return; }
     setResult(data);
     refreshCredits();
-    if (data) saveGeneration(userId, "Brand Vault", "vault", JSON.stringify(data));
+    if (data) await saveVault(data);
   }
 
   return (
@@ -427,7 +534,18 @@ function BrandVault({ userId, refreshCredits, onUpgrade, userPlan }) {
         <FieldGroup label="Color Direction"><Input value={vault.colors} onChange={v => setVault(p=>({...p,colors:v}))} placeholder="Any colors already in mind?" /></FieldGroup>
         <FieldGroup label="Font Vibe"><Input value={vault.fonts} onChange={v => setVault(p=>({...p,fonts:v}))} placeholder="e.g. Serif, editorial, modern luxury…" /></FieldGroup>
         <FieldGroup label="Messaging Notes"><Textarea value={vault.messaging} onChange={v => setVault(p=>({...p,messaging:v}))} placeholder="Any key messages already in your head?" /></FieldGroup>
+        <FieldGroup label="Website"><Input value={vault.website} onChange={v => setVault(p=>({...p,website:v}))} placeholder="https://..." /></FieldGroup>
+        <FieldGroup label="Social Handles"><Input value={vault.handles} onChange={v => setVault(p=>({...p,handles:v}))} placeholder="@brand on Instagram, TikTok, YouTube..." /></FieldGroup>
+        <FieldGroup label="Offers"><Input value={vault.offers} onChange={v => setVault(p=>({...p,offers:v}))} placeholder="Courses, templates, services, subscriptions..." /></FieldGroup>
+        <FieldGroup label="Logo Uploads">
+          <div className="photo-row">
+            {logoUrls.map((url,i) => <div key={url} className="photo-thumb"><img src={url} alt={`Logo ${i + 1}`} /><button className="photo-x" onClick={() => setLogoUrls(prev => prev.filter((_,j) => j!==i))}>×</button></div>)}
+            <div className="photo-add" onClick={() => logoRef.current?.click()}>+</div>
+          </div>
+          <input ref={logoRef} type="file" accept="image/*" style={{ display:"none" }} onChange={e => uploadLogo(e.target.files?.[0])} />
+        </FieldGroup>
       </div>
+      <CTAButton onClick={() => saveVault()} color="gold">⬡  Save Brand Vault</CTAButton>
       <CTAButton onClick={generate} loading={loading} loadingText="Building your vault… (15 credits)" color="gold">⬡  Generate Brand System <span className="credit-cost">15 credits</span></CTAButton>
       {creditError && <OutOfCreditsPrompt userPlan={userPlan} onUpgrade={onUpgrade} />}
       {result && (
@@ -445,8 +563,8 @@ function BrandVault({ userId, refreshCredits, onUpgrade, userPlan }) {
 
 // ─── Module 4 — Content Studio (Creator+) ────────────────────────────────────
 
-const CONTENT_FORMATS   = ["Reel Hook","Caption","Carousel Outline","Content Calendar","Email Subject","Story Sequence","Thread/Carousel Copy"];
-const CONTENT_PLATFORMS = ["Instagram","TikTok","Facebook","LinkedIn","Fanvue","YouTube"];
+const CONTENT_FORMATS   = ["Reel Hook","Caption","Carousel Outline","7-Day Calendar","30-Day Calendar","90-Day Calendar","Email Subject","Story Sequence","Thread/Carousel Copy"];
+const CONTENT_PLATFORMS = ["Instagram","TikTok","Pinterest","YouTube","Facebook","LinkedIn","Fanvue"];
 
 function ContentStudio({ userId, refreshCredits, onUpgrade, userPlan }) {
   const { profile } = useProfile();
@@ -463,17 +581,19 @@ function ContentStudio({ userId, refreshCredits, onUpgrade, userPlan }) {
     const ctx    = profileContext(profile);
     const action = CONTENT_ACTION_MAP[format] || "content-caption";
 
-    if (format === "Content Calendar") {
+    const isCalendar = format.includes("Calendar");
+    if (isCalendar) {
+      const days = format.startsWith("30") ? 30 : format.startsWith("90") ? 90 : 7;
       const data = await callClaudeJSON(
-        "Generate a 7-day content calendar. Return JSON: { days: [{day, platform, format, topic, hook, caption, hashtags}] }",
-        `${ctx}\nPlatform: ${platform}\nFocus: ${topic||"aligned with my brand"}`,
+        `Generate a ${days}-day content calendar. Return JSON: { days: [{day, platform, format, topic, hook, caption, hashtags}] }`,
+        `${ctx}\nPlatform: ${platform}\nFocus: ${topic||"aligned with my brand"}\nCalendar Length: ${days} days`,
         action
       );
       setLoading(false);
       if (data?._insufficientCredits) { setCreditError(true); return; }
       if (data?.days) {
         setResult(JSON.stringify(data.days));
-        saveGeneration(userId,"Content Calendar","content",JSON.stringify(data.days));
+        saveGeneration(userId,format,"content",JSON.stringify(data.days));
         refreshCredits();
       }
       return;
@@ -495,9 +615,9 @@ function ContentStudio({ userId, refreshCredits, onUpgrade, userPlan }) {
   }
 
   let calendarDays = [];
-  if (format==="Content Calendar"&&result) { try { calendarDays=JSON.parse(result); } catch {} }
+  if (format.includes("Calendar")&&result) { try { calendarDays=JSON.parse(result); } catch {} }
 
-  const creditCost = format === "Content Calendar" ? 3
+  const creditCost = format.includes("Calendar") ? 3
     : ["Story Sequence"].includes(format) ? 5
     : ["Carousel Outline","Thread/Carousel Copy"].includes(format) ? 3
     : 1;
@@ -636,6 +756,7 @@ function ProjectVault({ userId }) {
   const [projects, setProjects] = useState([]);
   const [newName, setNewName]   = useState("");
   const [newType, setNewType]   = useState("Content");
+  const [search, setSearch]     = useState("");
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
@@ -663,9 +784,10 @@ function ProjectVault({ userId }) {
         <Chips options={["Content","Brand","Script","Character","Storyboard"]} value={newType} onChange={setNewType} />
         <CTAButton onClick={addProject} color="purple">▣  Create Project</CTAButton>
       </div>
+      <FieldGroup label="Search Project Vault"><Input value={search} onChange={setSearch} placeholder="Search saved outputs, scripts, calendars, prompts..." /></FieldGroup>
       {loading ? <Loader text="Loading your vault…" /> : (
         <div className="projects-grid">
-          {projects.map(p => {
+          {projects.filter(p => `${p.name} ${p.type}`.toLowerCase().includes(search.toLowerCase())).map(p => {
             const color = TYPE_COLORS[p.type]||"#c77dff";
             const date  = new Date(p.created_at).toLocaleDateString("en-US",{ month:"short", year:"numeric" });
             return (
@@ -684,7 +806,91 @@ function ProjectVault({ userId }) {
   );
 }
 
-// ─── Module 8 — AI Memory Engine (Creator+) ──────────────────────────────────
+// ─── Module 8 — Prompt Vault (Creator+) ──────────────────────────────────────
+
+function PromptVault({ userId }) {
+  const { profile } = useProfile();
+  const [prompts, setPrompts] = useState([]);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("Storytelling");
+  const [prompt, setPrompt] = useState("");
+  const [search, setSearch] = useState("");
+  const CATEGORIES = ["Higgsfield","Nano Banana","Kling","Seedance","Storytelling","Branding","Social Media","YouTube"];
+
+  useEffect(() => {
+    if (!userId) return;
+    const sb = createClient();
+    sb.from("prompt_vault").select("*").eq("user_id", userId).order("updated_at", { ascending:false })
+      .then(({ data }) => { if (data) setPrompts(data); });
+  }, [userId]);
+
+  async function savePrompt() {
+    if (!userId || !title || !prompt) return;
+    const sb = createClient();
+    const { data } = await sb.from("prompt_vault").insert({
+      user_id: userId,
+      title,
+      category,
+      prompt,
+      tags: [profile.brand.brandName, profile.audience.platform].filter(Boolean),
+    }).select("*").single();
+    if (data) setPrompts(prev => [data, ...prev]);
+    setTitle("");
+    setPrompt("");
+  }
+
+  async function toggleFavorite(item) {
+    const sb = createClient();
+    const { data } = await sb.from("prompt_vault").update({ favorite: !item.favorite }).eq("id", item.id).select("*").single();
+    if (data) setPrompts(prev => prev.map(p => p.id === item.id ? data : p));
+  }
+
+  async function clonePrompt(item) {
+    if (!userId) return;
+    const sb = createClient();
+    const { data } = await sb.from("prompt_vault").insert({
+      user_id: userId,
+      title: `${item.title} Copy`,
+      category: item.category,
+      prompt: item.prompt,
+      cloned_from: item.id,
+      tags: item.tags || [],
+    }).select("*").single();
+    if (data) setPrompts(prev => [data, ...prev]);
+  }
+
+  const visible = prompts.filter(p => `${p.title} ${p.category} ${p.prompt}`.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="module-content">
+      <ModuleHeader icon="◎" color="#7b2fff" title="Prompt Vault" subtitle="Save, favorite, clone, and search prompts that stay connected to your Becoming Profile and Brand Vault." />
+      <div className="two-col">
+        <FieldGroup label="Prompt Title"><Input value={title} onChange={setTitle} placeholder="e.g. Cinematic product reveal prompt" /></FieldGroup>
+        <FieldGroup label="Category"><Chips options={CATEGORIES} value={category} onChange={setCategory} /></FieldGroup>
+      </div>
+      <FieldGroup label="Prompt"><Textarea value={prompt} onChange={setPrompt} rows={4} placeholder="Paste or write the reusable prompt..." /></FieldGroup>
+      <CTAButton onClick={savePrompt} color="purple">◎  Save Prompt</CTAButton>
+      <FieldGroup label="Search Prompt Vault"><Input value={search} onChange={setSearch} placeholder="Search by tool, category, brand, or phrase..." /></FieldGroup>
+      <div className="projects-grid">
+        {visible.map(item => (
+          <div key={item.id} className="project-card" style={{ "--pc":"#7b2fff" }}>
+            <div className="project-accent" style={{ background:"#7b2fff" }} />
+            <div className="project-type">{item.category}</div>
+            <div className="project-name">{item.title}</div>
+            <div className="project-meta"><span>{item.favorite ? "Favorite" : "Saved"}</span></div>
+            <div className="memory-add-row">
+              <button className="chip" onClick={() => toggleFavorite(item)}>{item.favorite ? "Unfavorite" : "Favorite"}</button>
+              <button className="chip" onClick={() => clonePrompt(item)}>Clone</button>
+            </div>
+          </div>
+        ))}
+        {visible.length === 0 && <p style={{ fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic", color:"var(--muted)", gridColumn:"1/-1" }}>Your saved prompts will appear here.</p>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Module 9 — AI Memory Engine (Creator+) ──────────────────────────────────
 
 function AIMemoryEngine({ userId, refreshCredits, onUpgrade, userPlan }) {
   const { profile } = useProfile();
@@ -764,7 +970,7 @@ function AIMemoryEngine({ userId, refreshCredits, onUpgrade, userPlan }) {
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
-function Dashboard({ setActive, profile, credits }) {
+function Dashboard({ setActive, profile, credits, score }) {
   const filled=Object.values(profile).reduce((a,s)=>a+Object.values(s).filter(Boolean).length,0);
   const total=Object.values(profile).reduce((a,s)=>a+Object.keys(s).length,0);
   const pct=Math.round((filled/total)*100);
@@ -794,6 +1000,17 @@ function Dashboard({ setActive, profile, credits }) {
           </div>
         </div>
       )}
+
+      <div className="dash-credits-summary">
+        <div className="dcs-plan">Your Becoming Journey</div>
+        <div className="dcs-bar-wrap">
+          <div className="dcs-bar" style={{ width: `${score?.overall ?? pct}%` }} />
+        </div>
+        <div className="dcs-label">
+          <span>{score?.overall ?? pct}% complete</span>
+          <span>Profile {score?.profile_completion ?? pct}% · Brand {score?.brand_completion ?? 0}% · Projects {score?.saved_projects ?? 0}%</span>
+        </div>
+      </div>
 
       <div className="dash-grid">
         {NAV.map(n => {
@@ -830,6 +1047,7 @@ export default function StudioOS({ user }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [credits, setCredits]     = useState({ remaining: 0, plan: "free", usedTotal: 0 });
   const [creditsLoaded, setCreditsLoaded] = useState(false);
+  const [score, setScore] = useState(null);
 
   const userId = user?.id ?? null;
 
@@ -837,12 +1055,13 @@ export default function StudioOS({ user }) {
   useEffect(() => {
     if (!userId) return;
     const sb = createClient();
-    sb.from("profiles").select("identity,brand,audience,visual,voice,goals").eq("user_id",userId).maybeSingle()
+    sb.from("profiles").select("identity,brand,audience,content,visual,voice,goals").eq("user_id",userId).maybeSingle()
       .then(({ data }) => {
         if (!data) return;
         setProfile(p => ({
           identity: data.identity||p.identity, brand:    data.brand   ||p.brand,
-          audience: data.audience||p.audience, visual:   data.visual  ||p.visual,
+          audience: data.audience||p.audience, content:  data.content ||p.content,
+          visual:   data.visual  ||p.visual,
           voice:    data.voice   ||p.voice,    goals:    data.goals   ||p.goals,
         }));
       });
@@ -861,6 +1080,38 @@ export default function StudioOS({ user }) {
   }
 
   useEffect(() => { if (userId) refreshCredits(); }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const sb = createClient();
+    const profileFilled = Object.values(profile).reduce((a,s)=>a+Object.values(s || {}).filter(Boolean).length,0);
+    const profileTotal = Object.values(profile).reduce((a,s)=>a+Object.keys(s || {}).length,0) || 1;
+    const profileCompletion = Math.round((profileFilled / profileTotal) * 100);
+    Promise.all([
+      sb.from("brand_vaults").select("colors,fonts,offers,website,social_handles,notes").eq("user_id", userId).maybeSingle(),
+      sb.from("projects").select("id", { count:"exact", head:true }).eq("user_id", userId),
+      sb.from("usage_tracking").select("id", { count:"exact", head:true }).eq("user_id", userId),
+    ]).then(async ([brandRes, projectRes, usageRes]) => {
+      const brand = brandRes.data || {};
+      const brandFields = [brand.colors, brand.fonts, brand.offers, brand.website, brand.social_handles, brand.notes];
+      const brandCompletion = Math.round((brandFields.filter(v => Array.isArray(v) ? v.length : Boolean(v && (typeof v !== "object" || Object.keys(v).length))).length / brandFields.length) * 100);
+      const savedProjects = Math.min(100, (projectRes.count || 0) * 10);
+      const activity = Math.min(100, (usageRes.count || 0) * 10);
+      const contentCreation = Math.min(100, (usageRes.count || 0) * 15);
+      const overall = Math.round((profileCompletion + brandCompletion + savedProjects + activity + contentCreation) / 5);
+      const nextScore = {
+        user_id: userId,
+        profile_completion: profileCompletion,
+        brand_completion: brandCompletion,
+        content_creation: contentCreation,
+        saved_projects: savedProjects,
+        activity,
+        overall,
+      };
+      setScore(nextScore);
+      await sb.from("becoming_scores").upsert(nextScore, { onConflict:"user_id" });
+    });
+  }, [userId, profile]);
 
   // ── Stripe upgrade redirect ─────────────────────────────────────────────────
   async function handleUpgrade(plan) {
@@ -886,7 +1137,7 @@ export default function StudioOS({ user }) {
   const mp = { userId, userPlan: credits.plan, refreshCredits, onUpgrade: handleUpgrade };
 
   const MODULES = {
-    dashboard:  <Dashboard setActive={setActive} profile={profile} credits={credits} />,
+    dashboard:  <Dashboard setActive={setActive} profile={profile} credits={credits} score={score} />,
     profile:    canAccess("profile")    ? <BecomingProfile  {...mp} />                                          : <LockedModuleView moduleId="profile"    userPlan={credits.plan} onUpgrade={handleUpgrade} />,
     character:  canAccess("character")  ? <CharacterBuilder {...mp} />                                          : <LockedModuleView moduleId="character"  userPlan={credits.plan} onUpgrade={handleUpgrade} />,
     vault:      canAccess("vault")      ? <BrandVault       {...mp} />                                          : <LockedModuleView moduleId="vault"      userPlan={credits.plan} onUpgrade={handleUpgrade} />,
@@ -894,6 +1145,7 @@ export default function StudioOS({ user }) {
     storyboard: canAccess("storyboard") ? <StoryboardStudio {...mp} />                                          : <LockedModuleView moduleId="storyboard" userPlan={credits.plan} onUpgrade={handleUpgrade} />,
     script:     canAccess("script")     ? <ScriptStudio     {...mp} />                                          : <LockedModuleView moduleId="script"     userPlan={credits.plan} onUpgrade={handleUpgrade} />,
     projects:   canAccess("projects")   ? <ProjectVault     userId={userId} />                                  : <LockedModuleView moduleId="projects"   userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    prompts:    canAccess("prompts")    ? <PromptVault      userId={userId} />                                  : <LockedModuleView moduleId="prompts"    userPlan={credits.plan} onUpgrade={handleUpgrade} />,
     memory:     canAccess("memory")     ? <AIMemoryEngine   {...mp} />                                          : <LockedModuleView moduleId="memory"     userPlan={credits.plan} onUpgrade={handleUpgrade} />,
   };
 
