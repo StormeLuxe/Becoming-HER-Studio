@@ -14,7 +14,7 @@ export function planAtLeast(userPlan: string, required: Plan): boolean {
 /** Minimum plan required to access each studio module */
 export const MODULE_MIN_PLAN: Record<string, Plan> = {
   dashboard:  "free",    // always visible
-  profile:    "creator",
+  profile:    "free",    // FREE - onboarding foundation for all users
   content:    "creator",
   script:     "creator",
   projects:   "creator",

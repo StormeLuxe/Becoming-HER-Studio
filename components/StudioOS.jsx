@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef, createContext, useContext } from "react";
 import { createClient } from "@/lib/supabase/client";
+import dynamic from "next/dynamic";
+
+const BecomingProfileOnboarding = dynamic(() => import("./BecomingProfileOnboarding"), { ssr: false });
 
 // ─── Tier config (mirrors lib/tiers.ts — kept inline for JSX compat) ─────────
 const PLAN_RANK    = { free: 0, creator: 1, pro: 2, studio: 3 };
@@ -11,7 +14,7 @@ const PLAN_PRICES  = { free: "Free", creator: "$27/month", pro: "$47/month", stu
 
 const MODULE_MIN_PLAN = {
   dashboard:  "free",
-  profile:    "creator",
+  profile:    "free",      // FREE - onboarding foundation
   content:    "creator",
   script:     "creator",
   projects:   "creator",
@@ -220,15 +223,15 @@ function OutOfCreditsPrompt({ userPlan, onUpgrade }) {
 // ─── Nav ─────────────────────────────────────────────────────────────────────
 
 const NAV = [
-  { id: "profile",    icon: "◈", label: "Becoming Profile",  color: "#f72585" },
-  { id: "vault",      icon: "⬡", label: "Brand Vault",       color: "#e8c97e" },
-  { id: "character",  icon: "◉", label: "Character Builder", color: "#c77dff" },
-  { id: "memory",     icon: "◬", label: "AI Memory Engine",  color: "#4cc9f0" },
-  { id: "projects",   icon: "▣", label: "Project Vault",     color: "#c77dff" },
-  { id: "prompts",    icon: "◎", label: "Prompt Vault",      color: "#7b2fff" },
-  { id: "content",    icon: "◐", label: "Content Studio",    color: "#4cc9f0" },
-  { id: "storyboard", icon: "◫", label: "Storyboard Studio", color: "#7b2fff" },
-  { id: "script",     icon: "◑", label: "Script Studio",     color: "#f72585" },
+  { id: "profile",    icon: "◈", label: "Becoming Profile",  color: "#f72585", desc: "Your creative identity and brand foundation" },
+  { id: "vault",      icon: "⬡", label: "Brand Vault",       color: "#e8c97e", desc: "Colors, fonts, and visual brand system" },
+  { id: "character",  icon: "◉", label: "Character Builder", color: "#c77dff", desc: "Build alter egos and brand personas" },
+  { id: "memory",     icon: "◬", label: "AI Memory Engine",  color: "#4cc9f0", desc: "Personal preferences and context memory" },
+  { id: "projects",   icon: "▣", label: "Project Vault",     color: "#c77dff", desc: "All your saved AI generations" },
+  { id: "prompts",    icon: "◎", label: "Prompt Vault",      color: "#7b2fff", desc: "Your custom cinematic prompts" },
+  { id: "content",    icon: "◐", label: "Content Studio",    color: "#4cc9f0", desc: "Captions, hooks, and content calendars" },
+  { id: "storyboard", icon: "◫", label: "Storyboard Studio", color: "#7b2fff", desc: "Cinematic shot sequences for AI video" },
+  { id: "script",     icon: "◑", label: "Script Studio",     color: "#f72585", desc: "YouTube, Reels, and course scripts" },
   // V2: { id: "settings", icon: "◎", label: "Settings", color: "#7a6096" },
 ];
 
@@ -1020,6 +1023,7 @@ function Dashboard({ setActive, profile, credits, score }) {
             <div key={n.id} className={`dash-card ${locked?"dash-card-locked":""}`} onClick={() => setActive(n.id)} style={{ "--dc":n.color }}>
               <span className="dash-icon" style={{ color: locked ? "var(--muted)" : n.color }}>{n.icon}</span>
               <div className="dash-card-name">{n.label}</div>
+              {n.desc && <div className="dash-card-desc">{n.desc}</div>}
               {locked
                 ? <div className="dash-card-lock">🔒 {PLAN_NAMES[required]}</div>
                 : <div className="dash-card-arrow">→</div>}
@@ -1048,6 +1052,7 @@ export default function StudioOS({ user }) {
   const [credits, setCredits]     = useState({ remaining: 0, plan: "free", usedTotal: 0 });
   const [creditsLoaded, setCreditsLoaded] = useState(false);
   const [score, setScore] = useState(null);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
 
   const userId = user?.id ?? null;
 
@@ -1055,9 +1060,10 @@ export default function StudioOS({ user }) {
   useEffect(() => {
     if (!userId) return;
     const sb = createClient();
-    sb.from("profiles").select("identity,brand,audience,content,visual,voice,goals").eq("user_id",userId).maybeSingle()
+    sb.from("profiles").select("identity,brand,audience,content,visual,voice,goals,onboarding_complete").eq("user_id",userId).maybeSingle()
       .then(({ data }) => {
         if (!data) return;
+        setOnboardingComplete(!!data.onboarding_complete);
         setProfile(p => ({
           identity: data.identity||p.identity, brand:    data.brand   ||p.brand,
           audience: data.audience||p.audience, content:  data.content ||p.content,
@@ -1138,7 +1144,9 @@ export default function StudioOS({ user }) {
 
   const MODULES = {
     dashboard:  <Dashboard setActive={setActive} profile={profile} credits={credits} score={score} />,
-    profile:    canAccess("profile")    ? <BecomingProfile  {...mp} />                                          : <LockedModuleView moduleId="profile"    userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    profile:    !onboardingComplete
+                  ? <BecomingProfileOnboarding userId={userId} onComplete={() => { setOnboardingComplete(true); setActive("dashboard"); }} />
+                  : <BecomingProfile {...mp} />,
     character:  canAccess("character")  ? <CharacterBuilder {...mp} />                                          : <LockedModuleView moduleId="character"  userPlan={credits.plan} onUpgrade={handleUpgrade} />,
     vault:      canAccess("vault")      ? <BrandVault       {...mp} />                                          : <LockedModuleView moduleId="vault"      userPlan={credits.plan} onUpgrade={handleUpgrade} />,
     content:    canAccess("content")    ? <ContentStudio    {...mp} />                                          : <LockedModuleView moduleId="content"    userPlan={credits.plan} onUpgrade={handleUpgrade} />,
@@ -1315,6 +1323,7 @@ export default function StudioOS({ user }) {
         .dash-card-locked{background:rgba(22,13,42,.5);border-color:rgba(42,24,80,.5)}
         .dash-icon{font-size:1.3rem}
         .dash-card-name{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text)}
+        .dash-card-desc{font-family:'Cormorant Garamond',serif;font-size:.8rem;font-style:italic;color:var(--muted);line-height:1.4;margin-top:.2rem}
         .dash-card-arrow{font-size:.75rem;color:var(--muted);margin-top:auto}
         .dash-card-lock{font-size:.52rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-top:auto;opacity:.6}
         .dash-profile-strip{background:var(--card);border:1px solid var(--border);border-radius:2px;padding:1rem 1.25rem;display:flex;align-items:center;gap:1.5rem}
