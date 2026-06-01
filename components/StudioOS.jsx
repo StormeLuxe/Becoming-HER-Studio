@@ -183,19 +183,257 @@ function ProfileBadge({ profile }) {
 function LockedModuleView({ moduleId, userPlan, onUpgrade }) {
   const nav      = NAV.find(n => n.id === moduleId);
   const required = MODULE_MIN_PLAN[moduleId] ?? "creator";
-  const name     = PLAN_NAMES[required];
-  const price    = PLAN_PRICES[required];
+
+  const MODULE_CONTENT = {
+    vault: {
+      headline: "Your brand deserves consistency.",
+      desc: "Store colors, fonts, voice, and identity in one place. Every AI generation automatically references your vault.",
+      features: [
+        "Store your brand colors, fonts, and logo",
+        "Define your brand voice and personality",
+        "Set your target audience and offers",
+        "All AI outputs automatically reference your vault",
+        "Creates consistency across every piece of content"
+      ]
+    },
+    character: {
+      headline: "Build personas that feel real.",
+      desc: "Create AI characters, alter egos, and brand personas with appearance, personality, and backstory.",
+      features: [
+        "Create AI personas and alter egos",
+        "Upload reference photos",
+        "Define appearance, personality, and backstory",
+        "Use characters across content, scripts, and storyboards",
+        "Build multiple characters for different campaigns"
+      ]
+    },
+    storyboard: {
+      headline: "Direct your vision, shot by shot.",
+      desc: "Generate cinematic shot sequences optimized for AI video platforms with director-level prompts.",
+      features: [
+        "Generate cinematic shot sequences",
+        "Optimized for Higgsfield, Kling, Nano Banana, Seedance",
+        "Single scenes, multi-scene, full campaigns",
+        "Uses your characters and brand automatically",
+        "Director-level prompts for every shot"
+      ]
+    },
+    script: {
+      headline: "Scripts that sound like you.",
+      desc: "Write YouTube, Reels, TikToks, and course scripts in your exact voice with Hook-Body-CTA structure.",
+      features: [
+        "Write scripts in your exact voice",
+        "YouTube, Reels, TikToks, Sales Videos, Courses",
+        "Automatically pulls from your Becoming Profile",
+        "Hook, Body, CTA structure every time",
+        "Multiple formats and durations"
+      ]
+    },
+    memory: {
+      headline: "Never repeat yourself again.",
+      desc: "Your preferences, brand details, and creative direction stored permanently across all modules.",
+      features: [
+        "Remembers your preferences permanently",
+        "No re-entering information ever again",
+        "Gets smarter with every generation",
+        "Personalizes outputs across all modules",
+        "Stores brand, audience, voice, and goals"
+      ]
+    },
+    projects: {
+      headline: "Your creative archive, searchable and saved.",
+      desc: "Never lose a script, caption, or storyboard. Organize and export everything you create.",
+      features: [
+        "Save every AI generation",
+        "Organize by project type",
+        "Searchable archive",
+        "Never lose a script, caption, or storyboard",
+        "Export and share your work"
+      ]
+    },
+    prompts: {
+      headline: "A library of AI prompts at your fingertips.",
+      desc: "Searchable prompt library for Higgsfield, Kling, social content, and branding.",
+      features: [
+        "Searchable library of AI prompts",
+        "Categories: Higgsfield, Kling, Social, Branding",
+        "Save, favorite, and clone prompts",
+        "Share with community (coming soon)",
+        "Built-in prompts for every platform"
+      ]
+    },
+    content: {
+      headline: "Content that converts, on brand every time.",
+      desc: "Generate captions, hooks, and content calendars with Hook Pressure™ scoring.",
+      features: [
+        "Generate captions, hooks, and content calendars",
+        "Platform-specific formatting (Instagram, TikTok, etc.)",
+        "Hook Pressure™ scoring on every output",
+        "Uses your brand voice automatically",
+        "Save directly to Project Vault"
+      ]
+    },
+    stormecinema: {
+      headline: "Cinematic storytelling at scale.",
+      desc: "Premium visual campaign builder with Hook Pressure™ scoring and emotional story architecture.",
+      features: [
+        "Premium cinematic storytelling module",
+        "Visual campaign builder",
+        "Hook Pressure™ scoring system",
+        "Emotional story engine",
+        "DMS Studio for persona building"
+      ]
+    }
+  };
+
+  const content = MODULE_CONTENT[moduleId] || MODULE_CONTENT.vault;
+
+  const PLANS = [
+    {
+      id: "creator",
+      name: "Becoming HER Starter",
+      price: "$27",
+      period: "/month",
+      badge: null,
+      color: "#FF2DA6",
+      features: [
+        "Becoming Profile",
+        "Content Studio",
+        "Prompt Vault",
+        "Project Vault",
+        "100 Monthly Credits"
+      ]
+    },
+    {
+      id: "pro",
+      name: "Becoming HER Creator",
+      price: "$47",
+      period: "/month",
+      badge: "Most Popular",
+      color: "#FF2DA6",
+      gradientColor: "#7b2fff",
+      features: [
+        "Everything in Starter",
+        "Brand Vault",
+        "Script Studio",
+        "Character Builder",
+        "Storyboard Studio",
+        "300 Monthly Credits"
+      ]
+    },
+    {
+      id: "studio",
+      name: "Becoming HER Studio",
+      price: "$97",
+      period: "/month",
+      badge: "Best Value",
+      color: "#D4AF37",
+      features: [
+        "Everything in Creator",
+        "AI Memory Engine",
+        "Storme Cinéma",
+        "Premium Templates",
+        "Priority Support",
+        "1000 Monthly Credits"
+      ]
+    }
+  ];
+
   return (
-    <div className="locked-module">
-      <div className="locked-icon" style={{ color: nav?.color || "var(--lavender)" }}>{nav?.icon || "◈"}</div>
-      <h2 className="locked-title">{nav?.label || moduleId}</h2>
-      <p className="locked-desc">
-        This module is available on the <strong>{name}</strong> plan ({price}).
-      </p>
-      <p className="locked-plan">Your current plan: <span>{PLAN_NAMES[userPlan] || "Free"}</span></p>
-      <button className="cta cta-pink" onClick={() => onUpgrade(required)}>
-        Upgrade to {name} →
-      </button>
+    <div className="locked-module-view">
+      {/* Module Hero */}
+      <div className="locked-hero">
+        <div className="locked-icon-large" style={{ color: nav?.color || "var(--lavender)" }}>
+          {nav?.icon || "◈"}
+        </div>
+        <h1 className="locked-headline">{content.headline}</h1>
+        <p className="locked-desc">{content.desc}</p>
+      </div>
+
+      {/* Why This Matters */}
+      <div className="locked-features">
+        <h3 className="locked-section-title">What's inside {nav?.label || moduleId}:</h3>
+        <ul className="locked-feature-list">
+          {content.features.map((feature, idx) => (
+            <li key={idx}>
+              <span className="feature-check">✓</span>
+              {feature}
+            </li>
+          ))}
+        </ul>
+        <p className="locked-auto-note">Every AI generation automatically uses this data.</p>
+      </div>
+
+      {/* Plan Comparison */}
+      <div className="locked-plans">
+        <h3 className="locked-section-title">Choose Your Plan</h3>
+        <div className="plan-comparison-grid">
+          {PLANS.map(plan => {
+            const isHighlighted = plan.id === required;
+            return (
+              <div
+                key={plan.id}
+                className={`plan-card ${isHighlighted ? 'highlighted' : ''}`}
+                style={{
+                  borderColor: isHighlighted ? plan.color : 'rgba(255, 45, 166, 0.15)',
+                  boxShadow: isHighlighted
+                    ? `0 8px 40px ${plan.color === '#D4AF37' ? 'rgba(212, 175, 55, 0.3)' : 'rgba(255, 45, 166, 0.3)'}`
+                    : 'none'
+                }}
+              >
+                {plan.badge && (
+                  <div className="plan-badge" style={{
+                    background: plan.gradientColor
+                      ? `linear-gradient(90deg, ${plan.color}, ${plan.gradientColor})`
+                      : plan.color === '#D4AF37'
+                        ? 'linear-gradient(90deg, #D4AF37, #e8c97e)'
+                        : plan.color
+                  }}>
+                    {plan.badge}
+                  </div>
+                )}
+                <div className="plan-name">{plan.name}</div>
+                <div className="plan-price">
+                  <span className="price-amount">{plan.price}</span>
+                  <span className="price-period">{plan.period}</span>
+                </div>
+                <ul className="plan-features">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx}>✓ {feature}</li>
+                  ))}
+                </ul>
+                <button
+                  className={`cta ${plan.color === '#D4AF37' ? 'cta-gold' : 'cta-pink'}`}
+                  onClick={() => onUpgrade(plan.id)}
+                >
+                  Choose {plan.id === 'creator' ? 'Starter' : plan.id === 'pro' ? 'Creator' : 'Studio'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Module Preview (Blurred) */}
+      <div className="locked-preview">
+        <div className="preview-blur">
+          <div className="preview-overlay">
+            <div className="preview-lock">🔒</div>
+            <div className="preview-text">Unlock to access</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom CTA */}
+      <div className="locked-bottom-cta">
+        <h2 className="bottom-tagline">She didn't arrive... she became.</h2>
+        <p className="bottom-subtext">
+          Join thousands of creators building their digital empire with Becoming HER Studio.
+        </p>
+        <button className="cta cta-pink cta-large" onClick={() => onUpgrade(required)}>
+          Start Becoming Today →
+        </button>
+      </div>
     </div>
   );
 }
@@ -1459,7 +1697,52 @@ export default function StudioOS({ user }) {
         .comp-bar{height:100%;border-radius:2px;transition:width .6s ease}
         .comp-pct{font-size:.55rem;color:var(--lavender);width:30px;text-align:right;flex-shrink:0}
 
-        @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0!important}.page-inner{padding:1.25rem 1rem 3rem}}
+        /* ── Locked Module View ────────────────────────────────────────────── */
+        .locked-module-view{max-width:1200px;margin:0 auto;padding:3rem 1.5rem}
+        .locked-hero{text-align:center;margin-bottom:4rem}
+        .locked-icon-large{font-size:4rem;margin-bottom:1.5rem}
+        .locked-headline{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:400;color:var(--cream);line-height:1.1;margin-bottom:1rem}
+        .locked-desc{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-style:italic;color:var(--muted);line-height:1.7;max-width:700px;margin:0 auto}
+
+        .locked-features{background:rgba(18,3,30,.85);border:1px solid rgba(255,45,166,.15);backdrop-filter:blur(10px);border-radius:12px;padding:2.5rem;margin-bottom:4rem}
+        .locked-section-title{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--lavender);margin-bottom:1.75rem}
+        .locked-feature-list{list-style:none;display:flex;flex-direction:column;gap:1rem;margin-bottom:1.5rem}
+        .locked-feature-list li{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--text);line-height:1.6;display:flex;align-items:flex-start;gap:.75rem}
+        .feature-check{color:#FF2DA6;font-weight:bold;flex-shrink:0}
+        .locked-auto-note{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--muted);text-align:center;padding-top:1rem;border-top:1px solid rgba(255,45,166,.1)}
+
+        .locked-plans{margin-bottom:4rem}
+        .plan-comparison-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-top:2rem}
+        .plan-card{background:rgba(18,3,30,.85);border:2px solid rgba(255,45,166,.15);backdrop-filter:blur(10px);border-radius:12px;padding:2.5rem 2rem;position:relative;transition:all .4s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+        .plan-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(255,45,166,.2)}
+        .plan-card.highlighted{transform:scale(1.05);box-shadow:0 12px 50px rgba(255,45,166,.35)}
+        .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);padding:.4rem 1.25rem;border-radius:20px;font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:#fff;font-weight:500;white-space:nowrap}
+        .plan-name{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--cream);margin-bottom:.75rem;text-align:center}
+        .plan-price{display:flex;align-items:baseline;justify-content:center;gap:.3rem;margin-bottom:2rem}
+        .price-amount{font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;background:linear-gradient(135deg,var(--cream),var(--lavender));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .price-period{font-size:.7rem;letter-spacing:.1em;color:var(--muted)}
+        .plan-features{list-style:none;flex:1;margin-bottom:2rem}
+        .plan-features li{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.05em;color:var(--text);padding:.65rem 0;border-bottom:1px solid rgba(255,45,166,.08)}
+        .plan-features li:last-child{border-bottom:none}
+        .plan-card .cta{width:100%;justify-content:center}
+
+        .locked-preview{background:rgba(18,3,30,.6);border:1px solid rgba(255,45,166,.1);border-radius:12px;padding:3rem;margin-bottom:4rem;position:relative;overflow:hidden;min-height:300px}
+        .preview-blur{filter:blur(8px);opacity:.3;background:linear-gradient(135deg,rgba(255,45,166,.1),rgba(123,47,255,.1));height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;color:var(--muted)}
+        .preview-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;backdrop-filter:blur(2px);background:rgba(5,1,10,.6)}
+        .preview-lock{font-size:3rem}
+        .preview-text{font-family:'Playfair Display',serif;font-size:1.4rem;font-style:italic;color:var(--lavender)}
+
+        .locked-bottom-cta{text-align:center;padding:3rem 1.5rem;background:linear-gradient(135deg,rgba(255,45,166,.08),rgba(123,47,255,.05));border:1px solid rgba(255,45,166,.2);border-radius:12px}
+        .bottom-tagline{font-family:'Playfair Display',serif;font-size:2rem;font-style:italic;color:var(--cream);margin-bottom:1rem}
+        .bottom-subtext{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--muted);margin-bottom:2rem;line-height:1.7}
+        .cta-large{font-size:.75rem;padding:1.25rem 3rem}
+
+        @media(max-width:768px){
+          .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0!important}.page-inner{padding:1.25rem 1rem 3rem}
+          .locked-headline{font-size:2rem}.locked-icon-large{font-size:3rem}
+          .plan-comparison-grid{grid-template-columns:1fr}.plan-card.highlighted{transform:scale(1)}
+          .locked-module-view{padding:2rem 1rem}
+        }
       `}</style>
 
       <div className="studio">
