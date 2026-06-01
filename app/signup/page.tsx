@@ -28,9 +28,9 @@ export default function SignupPage() {
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: "#05010A", display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", fontFamily: "'DM Mono', monospace" }}>
+    <main style={{ minHeight: "100vh", background: "radial-gradient(ellipse 60% 40% at 0% 0%, rgba(255,45,166,0.12) 0%, transparent 50%), radial-gradient(ellipse 50% 40% at 100% 0%, rgba(147,51,234,0.12) 0%, transparent 50%), radial-gradient(ellipse 40% 30% at 50% 100%, rgba(255,45,166,0.08) 0%, transparent 50%), #12031E", display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", fontFamily: "'DM Mono', monospace" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');`}</style>
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse 70% 50% at 20% 0%, rgba(255,45,166,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 10%, rgba(123,47,255,0.14) 0%, transparent 60%)" }} />
+      <div style={{ display: "none" }} />
 
       <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 420, textAlign: "center" }}>
         <div style={{ marginBottom: "2.5rem" }}>

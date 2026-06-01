@@ -72,13 +72,13 @@ export default function StormeLanding({ onEnter }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,300;1,400;1,700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        :root{--black:#05010A;--deep:#12031E;--card:#160d28;--card2:#1e1238;--border:#2e1e50;--pink:#FF2DA6;--purple:#7b2fff;--violet:#b5179e;--lavender:#c77dff;--teal:#4cc9f0;--cream:#f0e6ff;--text:#c9b8e8;--muted:#7a6096;--gold:#D4AF37}
-        html{scroll-behavior:smooth}body{background:var(--black);color:var(--text);font-family:'DM Mono',monospace;overflow-x:hidden}
-        .noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-        .ambient{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 15% 5%,rgba(247,37,133,.2) 0%,transparent 55%),radial-gradient(ellipse 50% 45% at 85% 10%,rgba(123,47,255,.22) 0%,transparent 55%),radial-gradient(ellipse 40% 35% at 50% 100%,rgba(76,201,240,.1) 0%,transparent 55%)}
+        :root{--black:#12031E;--deep:#1D0A2E;--card:#2A123F;--card2:#341650;--border:rgba(255,255,255,0.08);--pink:#FF2DA6;--purple:#7b2fff;--violet:#b5179e;--lavender:#c77dff;--teal:#4cc9f0;--cream:#f0e6ff;--text:#d4b8e8;--muted:#9b7bb8;--gold:#D4AF37}
+        html{scroll-behavior:smooth}body{background:radial-gradient(ellipse 60% 40% at 0% 0%,rgba(255,45,166,.12) 0%,transparent 50%),radial-gradient(ellipse 50% 40% at 100% 0%,rgba(147,51,234,.12) 0%,transparent 50%),radial-gradient(ellipse 40% 30% at 50% 100%,rgba(255,45,166,.08) 0%,transparent 50%),#12031E;color:var(--text);font-family:'DM Mono',monospace;overflow-x:hidden}
+        .noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.02;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+        .ambient{display:none}
         .page{position:relative;z-index:1}
         .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s}
-        .nav.scrolled{background:rgba(10,6,18,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:.9rem 2rem}
+        .nav.scrolled{background:rgba(18,3,30,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.08);padding:.9rem 2rem}
         .nav-brand{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:400;color:var(--cream);letter-spacing:.05em}
         .nav-brand em{font-style:italic;color:var(--lavender)}
         .nav-cta{padding:.55rem 1.4rem;background:linear-gradient(135deg,var(--pink),var(--purple));border:none;border-radius:1px;color:#fff;cursor:pointer;font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;transition:all .3s}
