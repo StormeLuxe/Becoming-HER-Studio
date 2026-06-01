@@ -1,3 +1,20 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body { background: #08040f; }
+body { background: #05010A; }
+
+/* Luxury Animations */
+@keyframes soft-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 45, 166, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(255, 45, 166, 0.4); }
+}
+
+@keyframes luxury-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

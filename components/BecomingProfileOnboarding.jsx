@@ -408,9 +408,9 @@ export default function BecomingProfileOnboarding({ userId, onComplete }) {
         .step-subtitle { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-style: italic; color: var(--muted); line-height: 1.7; }
 
         .creator-type-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-        .creator-type-card { background: var(--card); border: 2px solid var(--border); border-radius: 4px; padding: 1.75rem 1.5rem; cursor: pointer; transition: all 0.25s; text-align: center; }
-        .creator-type-card:hover { border-color: var(--pink); transform: translateY(-3px); }
-        .creator-type-card.selected { border-color: var(--pink); background: rgba(247, 37, 133, 0.1); box-shadow: 0 0 0 1px var(--pink); }
+        .creator-type-card { background: rgba(18, 3, 30, 0.85); border: 2px solid rgba(255, 45, 166, 0.15); backdrop-filter: blur(10px); border-radius: 8px; padding: 1.75rem 1.5rem; cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); text-align: center; }
+        .creator-type-card:hover { border-color: rgba(255, 45, 166, 0.5); transform: translateY(-4px); box-shadow: 0 8px 30px rgba(255, 45, 166, 0.2); }
+        .creator-type-card.selected { border-color: #FF2DA6; background: rgba(255, 45, 166, 0.12); box-shadow: 0 8px 40px rgba(255, 45, 166, 0.3); }
         .ct-icon { font-size: 2rem; margin-bottom: 0.75rem; color: var(--pink); }
         .ct-label { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--cream); margin-bottom: 0.5rem; }
         .ct-desc { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-style: italic; color: var(--muted); line-height: 1.5; }
@@ -455,8 +455,8 @@ export default function BecomingProfileOnboarding({ userId, onComplete }) {
         .completion-modules span { background: rgba(247, 37, 133, 0.12); border: 1px solid rgba(247, 37, 133, 0.3); border-radius: 20px; padding: 0.5rem 1.25rem; font-size: 0.75rem; letter-spacing: 0.05em; color: var(--lavender); }
 
         .step-nav { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; }
-        .cta-ghost { padding: 0.85rem 1.75rem; background: none; border: 1px solid var(--border); border-radius: 2px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--lavender); transition: all 0.3s; }
-        .cta-ghost:hover { border-color: var(--lavender); color: var(--cream); }
+        .cta-ghost { padding: 0.85rem 1.75rem; background: none; border: 1px solid rgba(255, 45, 166, 0.3); border-radius: 4px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: #FF2DA6; transition: all 0.3s ease; }
+        .cta-ghost:hover { border-color: #FF2DA6; background: rgba(255, 45, 166, 0.08); color: var(--cream); }
 
         @media (max-width: 640px) {
           .creator-type-grid, .journey-grid { grid-template-columns: 1fr; }
