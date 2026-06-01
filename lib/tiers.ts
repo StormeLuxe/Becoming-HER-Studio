@@ -13,15 +13,17 @@ export function planAtLeast(userPlan: string, required: Plan): boolean {
 
 /** Minimum plan required to access each studio module */
 export const MODULE_MIN_PLAN: Record<string, Plan> = {
-  dashboard:  "free",    // always visible
-  profile:    "free",    // FREE - onboarding foundation for all users
-  content:    "creator",
-  script:     "creator",
-  projects:   "creator",
-  memory:     "creator",
-  character:  "pro",
-  vault:      "pro",
-  storyboard: "studio",
+  dashboard:     "free",    // always visible
+  profile:       "free",    // FREE - onboarding foundation for all users
+  content:       "creator",
+  script:        "creator",
+  projects:      "creator",
+  memory:        "creator",
+  prompts:       "creator",
+  character:     "pro",
+  vault:         "pro",
+  storyboard:    "studio",
+  stormecinema:  "studio",  // Premium cinematic module
 };
 
 export const PLAN_CREDITS: Record<Plan, number> = {

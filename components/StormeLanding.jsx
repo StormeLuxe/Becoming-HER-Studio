@@ -17,11 +17,11 @@ const PRICING = [
 ];
 
 const FAQS = [
-  { q: "Who is STORME Cinéma built for?", a: "AI creators, digital entrepreneurs, content strategists, and women building luxury brands online. If you create content and want it to feel like it came from a director's table — not a SaaS dashboard — this is yours." },
-  { q: "Do I need tech experience to use it?", a: "None. STORME Cinéma is built for creators, not developers. You show up with your vision — STORME does the heavy lifting." },
-  { q: "What is Hook Pressure™?", a: "Hook Pressure™ is STORME's proprietary scoring system. Every piece of content you generate is analyzed across 7 attention-trap metrics so you know exactly how hard your hook will hit before you post." },
-  { q: "Can I upload my own photos?", a: "Yes — on Pro Creator and Becoming Her plans. Upload up to 6 photos and STORME reads your face, your energy, your presence, and writes your alter ego around the real you." },
-  { q: "What makes this different from ChatGPT?", a: "STORME Cinéma is not a general AI tool. It's a cinematic storytelling engine with intentional modules, built around Black feminine creativity, luxury brand positioning, and content that moves people. The culture is built in." },
+  { q: "Who is Becoming HER Studio built for?", a: "AI creators, digital entrepreneurs, content strategists, and women building luxury brands online. If you create content and want it to feel like it came from a director's table — not a SaaS dashboard — this is yours." },
+  { q: "Do I need tech experience to use it?", a: "None. Becoming HER Studio is built for creators, not developers. You show up with your vision — the platform does the heavy lifting." },
+  { q: "What is Hook Pressure™?", a: "Hook Pressure™ is our proprietary scoring system. Every piece of content you generate is analyzed across 7 attention-trap metrics so you know exactly how hard your hook will hit before you post." },
+  { q: "Can I upload my own photos?", a: "Yes — on Pro Creator and Studio plans. Upload up to 6 photos and the platform reads your face, your energy, your presence, and writes your alter ego around the real you." },
+  { q: "What makes this different from ChatGPT?", a: "Becoming HER Studio is not a general AI tool. It's an AI Creator Operating System with 8+ intentional modules, built around Black feminine creativity, luxury brand positioning, and content that moves people. The culture is built in." },
   { q: "Can I cancel anytime?", a: "Yes. No contracts, no penalties. Cancel from your account any time — you keep access through the end of your billing period." },
 ];
 
@@ -181,20 +181,20 @@ export default function StormeLanding({ onEnter }) {
       <div className="noise" /><div className="ambient" />
       <div className="page">
         <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
-          <div className="nav-brand">STORME <em>Cinéma</em></div>
-          <button className="nav-cta" onClick={() => onEnter("creator")}>Start Your Glow-Up →</button>
+          <div className="nav-brand">Becoming <em>HER</em> Studio</div>
+          <button className="nav-cta" onClick={() => onEnter("creator")}>Start Becoming →</button>
         </nav>
 
         <div className="hero">
-          <div className="hero-eyebrow">Storme Luxe · Exclusive Access</div>
+          <div className="hero-eyebrow">Storme Luxe · The AI Glow-Up</div>
           <div className="hero-becoming">Becoming Her</div>
-          <h1 className="hero-title">STORME <em>Cinéma</em></h1>
+          <h1 className="hero-title">Becoming <em>HER</em> Studio</h1>
           <div className="hero-by">by Storme Luxe</div>
           <div className="hero-divider" />
-          <p className="hero-desc">The cinematic AI storytelling studio built for creators who refuse to sound like everyone else. Your story is the strategy. Your presence is the brand. Your becoming is the content.</p>
+          <p className="hero-desc">The AI Creator Operating System designed for women building brands, creating content, and becoming the next version of themselves.</p>
           <div className="hero-ctas">
-            <button className="btn-primary" onClick={() => onEnter("creator")}>Start Your Glow-Up</button>
-            <button className="btn-ghost" onClick={() => document.getElementById("pricing").scrollIntoView({ behavior: "smooth" })}>See Pricing</button>
+            <button className="btn-primary" onClick={() => onEnter("creator")}>Start Becoming</button>
+            <button className="btn-ghost" onClick={() => document.getElementById("pricing").scrollIntoView({ behavior: "smooth" })}>See Plans</button>
           </div>
           <div className="hero-scroll"><div className="hero-scroll-line" />scroll</div>
         </div>
@@ -203,8 +203,8 @@ export default function StormeLanding({ onEnter }) {
           <div className="section-wrap">
             <div className="what-grid">
               <div className="what-text">
-                <h3>Not a tool. <em>A creative director in your pocket.</em></h3>
-                <p>STORME Cinéma is a five-module AI studio built for women building luxury content brands. Every output is cinematic, intentional, and scored for impact.</p>
+                <h3>Not a tool. <em>An operating system for creators.</em></h3>
+                <p>Becoming HER Studio is an AI Creator Operating System built for women building luxury content brands. Every module is intentional. Every output is cinematic. Every generation is scored for impact.</p>
                 <p>It doesn't generate words — it generates consequences. Hooks that stop scrolls. Stories with emotional weight. Personas that feel real.</p>
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.05rem", fontStyle: "italic", color: "var(--lavender)", lineHeight: 1.7 }}>She didn't arrive… she became.</p>
               </div>
@@ -238,7 +238,7 @@ export default function StormeLanding({ onEnter }) {
         <Section>
           <div className="quote-banner">
             <p className="quote-text">"Strip friction. Never add buttons that don't lead to a finished story. Make the creative process feel <strong>easier as you level up.</strong>"</p>
-            <div className="quote-attr">The STORME Cinéma Promise</div>
+            <div className="quote-attr">The Becoming HER Studio Promise</div>
           </div>
         </Section>
 
@@ -288,13 +288,13 @@ export default function StormeLanding({ onEnter }) {
         <Section>
           <div className="final-cta">
             <h2 className="final-title">The story<br />doesn't start later.<br /><em>It starts now.</em></h2>
-            <p className="final-sub">Every version of her you've imagined is one story away. STORME Cinéma is the room where she becomes real.</p>
-            <button className="btn-primary" onClick={() => onEnter("creator")}>Start Your Glow-Up →</button>
+            <p className="final-sub">Every version of her you've imagined is one story away. Becoming HER Studio is the room where she becomes real.</p>
+            <button className="btn-primary" onClick={() => onEnter("creator")}>Start Becoming →</button>
           </div>
         </Section>
 
         <footer className="footer">
-          <div className="footer-brand">STORME <em>Cinéma</em> by Storme Luxe</div>
+          <div className="footer-brand">Becoming <em>HER</em> Studio by Storme Luxe</div>
           <div className="footer-links">
             <a>Privacy</a><a>Terms</a><a>Support</a>
             <a onClick={() => document.getElementById("pricing").scrollIntoView({ behavior: "smooth" })}>Pricing</a>

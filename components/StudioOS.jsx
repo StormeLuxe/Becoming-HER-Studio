@@ -223,15 +223,16 @@ function OutOfCreditsPrompt({ userPlan, onUpgrade }) {
 // ─── Nav ─────────────────────────────────────────────────────────────────────
 
 const NAV = [
-  { id: "profile",    icon: "◈", label: "Becoming Profile",  color: "#f72585", desc: "Your creative identity and brand foundation" },
-  { id: "vault",      icon: "⬡", label: "Brand Vault",       color: "#e8c97e", desc: "Colors, fonts, and visual brand system" },
-  { id: "character",  icon: "◉", label: "Character Builder", color: "#c77dff", desc: "Build alter egos and brand personas" },
-  { id: "memory",     icon: "◬", label: "AI Memory Engine",  color: "#4cc9f0", desc: "Personal preferences and context memory" },
-  { id: "projects",   icon: "▣", label: "Project Vault",     color: "#c77dff", desc: "All your saved AI generations" },
-  { id: "prompts",    icon: "◎", label: "Prompt Vault",      color: "#7b2fff", desc: "Your custom cinematic prompts" },
-  { id: "content",    icon: "◐", label: "Content Studio",    color: "#4cc9f0", desc: "Captions, hooks, and content calendars" },
-  { id: "storyboard", icon: "◫", label: "Storyboard Studio", color: "#7b2fff", desc: "Cinematic shot sequences for AI video" },
-  { id: "script",     icon: "◑", label: "Script Studio",     color: "#f72585", desc: "YouTube, Reels, and course scripts" },
+  { id: "profile",       icon: "◈", label: "Becoming Profile",  color: "#f72585", desc: "Your creative identity and brand foundation" },
+  { id: "vault",         icon: "⬡", label: "Brand Vault",       color: "#e8c97e", desc: "Colors, fonts, and visual brand system" },
+  { id: "character",     icon: "◉", label: "Character Builder", color: "#c77dff", desc: "Build alter egos and brand personas" },
+  { id: "memory",        icon: "◬", label: "AI Memory Engine",  color: "#4cc9f0", desc: "Personal preferences and context memory" },
+  { id: "projects",      icon: "▣", label: "Project Vault",     color: "#c77dff", desc: "All your saved AI generations" },
+  { id: "prompts",       icon: "◎", label: "Prompt Vault",      color: "#7b2fff", desc: "Your custom cinematic prompts" },
+  { id: "content",       icon: "◐", label: "Content Studio",    color: "#4cc9f0", desc: "Captions, hooks, and content calendars" },
+  { id: "storyboard",    icon: "◫", label: "Storyboard Studio", color: "#7b2fff", desc: "Cinematic shot sequences for AI video" },
+  { id: "script",        icon: "◑", label: "Script Studio",     color: "#f72585", desc: "YouTube, Reels, and course scripts" },
+  { id: "stormecinema",  icon: "🎬", label: "Storme Cinéma",    color: "#D4AF37", desc: "Premium cinematic storytelling and visual campaign studio", tag: "Premium" },
   // V2: { id: "settings", icon: "◎", label: "Settings", color: "#7a6096" },
 ];
 
@@ -971,6 +972,50 @@ function AIMemoryEngine({ userId, refreshCredits, onUpgrade, userPlan }) {
   );
 }
 
+// ─── Storme Cinéma Studio ─────────────────────────────────────────────────────
+
+function StormeCinemaStudio({ userId, refreshCredits, onUpgrade, userPlan }) {
+  const { profile } = useProfile();
+  const [scene, setScene] = useState("");
+  const [mood, setMood] = useState("");
+  const [shots, setShots] = useState("");
+  const [output, setOutput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [creditError, setCreditError] = useState(false);
+
+  async function generateCinematic() {
+    setLoading(true); setOutput(""); setCreditError(false);
+    const { text, insufficientCredits } = await callClaude(
+      "You are Storme Cinéma, the premium cinematic storytelling and visual campaign studio. Generate a cinematic shot sequence with director's notes, lighting, camera angles, and visual references. Output should be cinematic, intentional, and ready for AI video generation.",
+      `${profileContext(profile)}\n\nScene Description: ${scene}\nMood/Aesthetic: ${mood}\nShot Count: ${shots}`,
+      null,
+      "stormecinema-generate"
+    );
+    setLoading(false);
+    if (insufficientCredits) { setCreditError(true); return; }
+    setOutput(text);
+    refreshCredits();
+  }
+
+  return (
+    <div className="module">
+      <ModuleHeader
+        title="Storme Cinéma"
+        tagline="Premium Cinematic Storytelling Studio"
+        desc="Build shot sequences, visual concepts, and cinematic AI prompts."
+      />
+      {creditError && <CreditErrorBanner onUpgrade={onUpgrade} userPlan={userPlan} />}
+      <FormField label="Scene Description" value={scene} onChange={setScene} ph="e.g. A woman walks through a neon-lit alley at midnight..." rows={3} />
+      <FormField label="Mood/Aesthetic" value={mood} onChange={setMood} ph="e.g. Film noir, cyberpunk, luxury fashion editorial..." />
+      <FormField label="Number of Shots" value={shots} onChange={setShots} ph="e.g. 5 shots, 10 shots..." />
+      <CTAButton onClick={generateCinematic} color="gold" disabled={loading||!scene}>
+        {loading ? "Directing..." : "🎬  Generate Cinematic Sequence"}
+      </CTAButton>
+      {output && <ResultCard accentColor="#D4AF37"><div className="prose">{output}</div></ResultCard>}
+    </div>
+  );
+}
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 function Dashboard({ setActive, profile, credits, score }) {
@@ -1143,18 +1188,19 @@ export default function StudioOS({ user }) {
   const mp = { userId, userPlan: credits.plan, refreshCredits, onUpgrade: handleUpgrade };
 
   const MODULES = {
-    dashboard:  <Dashboard setActive={setActive} profile={profile} credits={credits} score={score} />,
-    profile:    !onboardingComplete
-                  ? <BecomingProfileOnboarding userId={userId} onComplete={() => { setOnboardingComplete(true); setActive("dashboard"); }} />
-                  : <BecomingProfile {...mp} />,
-    character:  canAccess("character")  ? <CharacterBuilder {...mp} />                                          : <LockedModuleView moduleId="character"  userPlan={credits.plan} onUpgrade={handleUpgrade} />,
-    vault:      canAccess("vault")      ? <BrandVault       {...mp} />                                          : <LockedModuleView moduleId="vault"      userPlan={credits.plan} onUpgrade={handleUpgrade} />,
-    content:    canAccess("content")    ? <ContentStudio    {...mp} />                                          : <LockedModuleView moduleId="content"    userPlan={credits.plan} onUpgrade={handleUpgrade} />,
-    storyboard: canAccess("storyboard") ? <StoryboardStudio {...mp} />                                          : <LockedModuleView moduleId="storyboard" userPlan={credits.plan} onUpgrade={handleUpgrade} />,
-    script:     canAccess("script")     ? <ScriptStudio     {...mp} />                                          : <LockedModuleView moduleId="script"     userPlan={credits.plan} onUpgrade={handleUpgrade} />,
-    projects:   canAccess("projects")   ? <ProjectVault     userId={userId} />                                  : <LockedModuleView moduleId="projects"   userPlan={credits.plan} onUpgrade={handleUpgrade} />,
-    prompts:    canAccess("prompts")    ? <PromptVault      userId={userId} />                                  : <LockedModuleView moduleId="prompts"    userPlan={credits.plan} onUpgrade={handleUpgrade} />,
-    memory:     canAccess("memory")     ? <AIMemoryEngine   {...mp} />                                          : <LockedModuleView moduleId="memory"     userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    dashboard:     <Dashboard setActive={setActive} profile={profile} credits={credits} score={score} />,
+    profile:       !onboardingComplete
+                     ? <BecomingProfileOnboarding userId={userId} onComplete={() => { setOnboardingComplete(true); setActive("dashboard"); }} />
+                     : <BecomingProfile {...mp} />,
+    character:     canAccess("character")     ? <CharacterBuilder {...mp} />                                          : <LockedModuleView moduleId="character"     userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    vault:         canAccess("vault")         ? <BrandVault       {...mp} />                                          : <LockedModuleView moduleId="vault"         userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    content:       canAccess("content")       ? <ContentStudio    {...mp} />                                          : <LockedModuleView moduleId="content"       userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    storyboard:    canAccess("storyboard")    ? <StoryboardStudio {...mp} />                                          : <LockedModuleView moduleId="storyboard"    userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    script:        canAccess("script")        ? <ScriptStudio     {...mp} />                                          : <LockedModuleView moduleId="script"        userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    projects:      canAccess("projects")      ? <ProjectVault     userId={userId} />                                  : <LockedModuleView moduleId="projects"      userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    prompts:       canAccess("prompts")       ? <PromptVault      userId={userId} />                                  : <LockedModuleView moduleId="prompts"       userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    memory:        canAccess("memory")        ? <AIMemoryEngine   {...mp} />                                          : <LockedModuleView moduleId="memory"        userPlan={credits.plan} onUpgrade={handleUpgrade} />,
+    stormecinema:  canAccess("stormecinema")  ? <StormeCinemaStudio {...mp} />                                        : <LockedModuleView moduleId="stormecinema"  userPlan={credits.plan} onUpgrade={handleUpgrade} />,
   };
 
   const activeNav = NAV.find(n => n.id === active);
@@ -1450,7 +1496,7 @@ export default function StudioOS({ user }) {
               );
             })}
           </nav>
-          <div className="sidebar-footer">© 2026 Storme Luxe · Becoming Her</div>
+          <div className="sidebar-footer">© 2026 Becoming HER Studio · by Storme Luxe</div>
         </aside>
 
         {/* ── Main ──────────────────────────────────────────────────────── */}
